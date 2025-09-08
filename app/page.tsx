@@ -1,10 +1,41 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Users, Calendar, BarChart3, Zap, Shield, Star } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/AuthContext"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function LandingPage() {
+  const { currentUser, loading } = useAuth()
+  const router = useRouter()
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && currentUser) {
+      router.push('/dashboard')
+    }
+  }, [currentUser, loading, router])
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render the landing page if user is authenticated (they'll be redirected)
+  if (currentUser) {
+    return null
+  }
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
