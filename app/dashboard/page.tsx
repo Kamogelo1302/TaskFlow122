@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { getUserTasks, getUserProjects } from "@/lib/firebase"
 import ProfileDropdown from "@/components/ProfileDropdown"
+import TaskProjectModal from "@/components/TaskProjectModal"
 
 export default function DashboardPage() {
   const { currentUser } = useAuth()
@@ -35,10 +36,12 @@ export default function DashboardPage() {
           getUserProjects(currentUser.uid)
         ])
 
-        const totalTasks = firebaseTasks.length
-        const totalProjects = firebaseProjects.length
         const completedTasks = firebaseTasks.filter((task: any) => task.completed).length
         const completedProjects = firebaseProjects.filter((project: any) => project.completed).length
+        
+        // Only count active (non-completed) tasks and projects
+        const totalTasks = firebaseTasks.filter((task: any) => !task.completed).length
+        const totalProjects = firebaseProjects.filter((project: any) => !project.completed).length
 
         const totalItems = totalTasks + totalProjects
         const completedItems = completedTasks + completedProjects
@@ -72,22 +75,11 @@ export default function DashboardPage() {
     setShowModal(true)
   }, [])
 
-  // Early return for loading state
-  if (isLoading || !dashboardStats) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
-    )
-  }
 
   const { totalTasks, totalProjects, completedTasks, completedProjects, productivityPercentage } = dashboardStats
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background dark:bg-gray-900">
       {/* Header */}
       <header className="bg-gradient-to-r from-pink-500 via-pink-400 to-blue-400 shadow-lg sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -113,7 +105,7 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Dashboard Content */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gradient-to-br from-pink-50 via-white to-blue-50 min-h-screen">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 bg-gradient-to-br from-pink-50 via-white to-blue-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 min-h-screen">
         {/* Welcome Section */}
         <div className="text-center mb-16">
           <div className="inline-block p-8 bg-gradient-to-r from-pink-400 to-blue-400 rounded-3xl shadow-2xl mb-8 transform hover:scale-105 transition-all duration-500">
@@ -121,10 +113,10 @@ export default function DashboardPage() {
               WELCOME
             </h1>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-pink-600 mb-6 bg-white px-8 py-3 rounded-2xl shadow-lg inline-block">
+          <h2 className="text-3xl sm:text-4xl font-bold text-pink-600 dark:text-pink-400 mb-6 bg-white dark:bg-gray-800 px-8 py-3 rounded-2xl shadow-lg inline-block">
             {currentUser?.displayName || "User"}
           </h2>
-          <p className="text-xl text-gray-700 text-pretty mb-10 max-w-3xl mx-auto bg-white/80 backdrop-blur-sm px-8 py-6 rounded-2xl shadow-lg">
+          <p className="text-xl text-gray-700 dark:text-gray-300 text-pretty mb-10 max-w-3xl mx-auto bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-8 py-6 rounded-2xl shadow-lg">
             Are you ready to get things done? Set your daily tasks & projects.
           </p>
           <div className="flex flex-col items-center space-y-3">
@@ -140,7 +132,7 @@ export default function DashboardPage() {
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </Button>
-            <p className="text-sm text-gray-600 font-medium bg-white/90 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-lg border border-gray-200/50">
+            <p className="text-sm text-gray-600 dark:text-gray-300 font-medium bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-lg border border-gray-200/50 dark:border-gray-700/50">
               ✨ Stay on Track. Stay Ahead. ✨
             </p>
           </div>
@@ -160,9 +152,9 @@ export default function DashboardPage() {
             <CardContent className="pt-0">
               <p className="text-4xl font-black text-white mb-2">{totalTasks}</p>
               <p className="text-sm text-pink-100">
-                {totalTasks === 0 ? "No tasks due today" : 
-                 totalTasks === 1 ? "1 task due today" : 
-                 `${totalTasks} tasks due today`}
+                {totalTasks === 0 ? "Ready to tackle new challenges!" : 
+                 totalTasks === 1 ? "One task, one victory!" : 
+                 `${totalTasks} opportunities to shine!`}
               </p>
             </CardContent>
           </Card>
@@ -178,38 +170,51 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="pt-0">
               <p className="text-4xl font-black text-white mb-2">{totalProjects}</p>
-              <p className="text-sm text-blue-100">{totalProjects === 0 ? "No projects yet" : `${totalProjects} project${totalProjects === 1 ? '' : 's'} created`}</p>
+              <p className="text-sm text-blue-100">{totalProjects === 0 ? "Time to build something amazing!" : `${totalProjects} dream${totalProjects === 1 ? '' : 's'} in progress`}</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-400 to-purple-500 text-white border-0 shadow-2xl hover:shadow-purple-300/50 transition-all duration-300 transform hover:scale-105 rounded-3xl overflow-hidden">
-            <CardHeader className="pb-3 bg-white/10">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg text-white">Productivity</CardTitle>
-                <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-white" />
+            <Card className="bg-gradient-to-br from-purple-400 to-purple-500 text-white border-0 shadow-2xl hover:shadow-purple-300/50 transition-all duration-300 transform hover:scale-105 rounded-3xl overflow-hidden">
+              <CardHeader className="pb-3 bg-white/10">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg text-white">Performance</CardTitle>
+                  <div className="h-10 w-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-white" />
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-4xl font-black text-white mb-2">{productivityPercentage}%</p>
-              <p className="text-sm text-purple-100">
-                {totalTasks + totalProjects > 0 ? `${completedTasks} of ${totalTasks + totalProjects} completed` : "Start working to see progress"}
-              </p>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <p className="text-2xl font-black text-white mb-2">
+                  {productivityPercentage === 0 ? "Ready to Rock! 🚀" :
+                   productivityPercentage < 25 ? "Building Momentum! 💪" :
+                   productivityPercentage < 50 ? "You're on Fire! 🔥" :
+                   productivityPercentage < 75 ? "Almost Unstoppable! ⚡" :
+                   productivityPercentage < 100 ? "So Close to Perfection! ✨" :
+                   "Absolutely Crushing It! 🎉"}
+                </p>
+                <p className="text-sm text-purple-100">
+                  {productivityPercentage === 0 ? "Every journey begins with a single step!" :
+                   productivityPercentage < 25 ? "Keep building that momentum!" :
+                   productivityPercentage < 50 ? "The fire is burning bright!" :
+                   productivityPercentage < 75 ? "You're unstoppable!" :
+                   productivityPercentage < 100 ? "Perfection is within reach!" :
+                   "You're absolutely amazing!"}
+                </p>
+              </CardContent>
+            </Card>
+
         </div>
 
         {/* Quick Actions */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           <Link href="/todays-tasks">
-            <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 rounded-3xl overflow-hidden group">
+            <Card className="bg-white dark:bg-gray-800 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 rounded-3xl overflow-hidden group">
               <CardHeader className="pb-6">
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-pink-400 to-pink-500 flex items-center justify-center mb-6 shadow-lg group-hover:shadow-pink-300/50 transition-all duration-300">
                   <Target className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-xl text-gray-800 mb-3">Tasks</CardTitle>
-                <CardDescription className="text-gray-600 text-base leading-relaxed">
+                <CardTitle className="text-xl text-gray-800 dark:text-gray-200 mb-3">Tasks</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
                   View and manage all your active tasks.
                 </CardDescription>
               </CardHeader>
@@ -222,13 +227,13 @@ export default function DashboardPage() {
           </Link>
 
           <Link href="/active-projects">
-            <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 rounded-3xl overflow-hidden group">
+            <Card className="bg-white dark:bg-gray-800 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 rounded-3xl overflow-hidden group">
               <CardHeader className="pb-6">
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center mb-6 shadow-lg group-hover:shadow-blue-300/50 transition-all duration-300">
                   <Calendar className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-xl text-gray-800 mb-3">Projects</CardTitle>
-                <CardDescription className="text-gray-600 text-base leading-relaxed">
+                <CardTitle className="text-xl text-gray-800 dark:text-gray-200 mb-3">Projects</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
                   Organize related tasks into a project structure.
                 </CardDescription>
               </CardHeader>
@@ -241,39 +246,27 @@ export default function DashboardPage() {
           </Link>
 
           <Link href="/productivity">
-            <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 rounded-3xl overflow-hidden group">
+            <Card className="bg-white dark:bg-gray-800 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 rounded-3xl overflow-hidden group">
               <CardHeader className="pb-6">
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center mb-6 shadow-lg group-hover:shadow-purple-300/50 transition-all duration-300">
                   <BarChart3 className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-xl text-gray-800 mb-3">Productivity</CardTitle>
-                <CardDescription className="text-gray-600 text-base leading-relaxed">
+                <CardTitle className="text-xl text-gray-800 dark:text-gray-200 mb-3">Productivity</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
                   Track your progress and productivity metrics.
                 </CardDescription>
               </CardHeader>
-              <div className="px-6 pb-6">
-                <div className="text-center mb-4">
-                  <div className="text-3xl font-bold text-purple-600">{productivityPercentage}%</div>
-                  <div className="text-sm text-gray-500">Overall Progress</div>
-                </div>
-                <div className="w-full h-2 bg-gradient-to-r from-purple-200 to-purple-300 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-purple-400 to-purple-500 rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${productivityPercentage}%` }}
-                  ></div>
-                </div>
-              </div>
             </Card>
           </Link>
 
           <Link href="/completed">
-            <Card className="bg-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 rounded-3xl overflow-hidden group">
+            <Card className="bg-white dark:bg-gray-800 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:scale-105 rounded-3xl overflow-hidden group">
               <CardHeader className="pb-6">
                 <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-green-400 to-green-500 flex items-center justify-center mb-6 shadow-lg group-hover:shadow-green-300/50 transition-all duration-300">
                   <CheckCircle className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-xl text-gray-800 mb-3">Completed Items</CardTitle>
-                <CardDescription className="text-gray-600 text-base leading-relaxed">
+                <CardTitle className="text-xl text-gray-800 dark:text-gray-200 mb-3">Completed Items</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400 text-base leading-relaxed">
                   View your completed tasks and projects.
                 </CardDescription>
               </CardHeader>
@@ -295,7 +288,10 @@ export default function DashboardPage() {
       </main>
 
       {/* Task/Project Selection Modal */}
-      {/* The TaskProjectModal component is removed as per the edit hint. */}
+      <TaskProjectModal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)} 
+      />
     </div>
   )
 }

@@ -4,15 +4,17 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Users, LogOut, Settings, User } from "lucide-react"
+import { Users, LogOut, Settings, User, Sun, Moon } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
+import { useTheme } from "next-themes"
 import Link from "next/link"
 
 export default function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const { currentUser, logout } = useAuth()
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside
@@ -38,6 +40,10 @@ export default function ProfileDropdown() {
     }
   }
 
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
+
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -60,9 +66,9 @@ export default function ProfileDropdown() {
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 z-50 overflow-hidden">
           <Card className="border-0 shadow-none">
-            <CardHeader className="bg-gradient-to-r from-pink-50 to-blue-50 pb-6">
+            <CardHeader className="bg-gradient-to-r from-pink-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 pb-6">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-16 w-16 border-4 border-white shadow-lg">
                   <AvatarImage src="" alt={currentUser.displayName || "User"} />
@@ -71,10 +77,10 @@ export default function ProfileDropdown() {
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <CardTitle className="text-xl text-gray-800">
+                  <CardTitle className="text-xl text-gray-800 dark:text-gray-200">
                     {currentUser.displayName || "User"}
                   </CardTitle>
-                  <p className="text-gray-600">{currentUser.email}</p>
+                  <p className="text-gray-600 dark:text-gray-400">{currentUser.email}</p>
                 </div>
               </div>
             </CardHeader>
@@ -82,24 +88,38 @@ export default function ProfileDropdown() {
             <CardContent className="p-0">
               <div className="space-y-1">
                 <Link href="/profile">
-                  <button className="w-full flex items-center space-x-3 px-6 py-3 text-left hover:bg-gray-50 transition-colors duration-200">
-                    <User className="h-5 w-5 text-gray-500" />
-                    <span className="text-gray-700">View Profile</span>
+                  <button className="w-full flex items-center space-x-3 px-6 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <span className="text-gray-700 dark:text-gray-300">View Profile</span>
                   </button>
                 </Link>
                 
                 <Link href="/settings">
-                  <button className="w-full flex items-center space-x-3 px-6 py-3 text-left hover:bg-gray-50 transition-colors duration-200">
-                    <Settings className="h-5 w-5 text-gray-500" />
-                    <span className="text-gray-700">Settings</span>
+                  <button className="w-full flex items-center space-x-3 px-6 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <Settings className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    <span className="text-gray-700 dark:text-gray-300">Settings</span>
                   </button>
                 </Link>
                 
-                <div className="border-t border-gray-100 my-2"></div>
+                <button 
+                  onClick={toggleTheme}
+                  className="w-full flex items-center space-x-3 px-6 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                >
+                  {theme === 'dark' ? (
+                    <Sun className="h-5 w-5 text-yellow-500" />
+                  ) : (
+                    <Moon className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  )}
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  </span>
+                </button>
+                
+                <div className="border-t border-gray-100 dark:border-gray-700 my-2"></div>
                 
                 <button 
                   onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-6 py-3 text-left hover:bg-red-50 text-red-600 transition-colors duration-200"
+                  className="w-full flex items-center space-x-3 px-6 py-3 text-left hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors duration-200"
                 >
                   <LogOut className="h-5 w-5" />
                   <span>Log Out</span>

@@ -6,6 +6,7 @@ import { ArrowLeft, Target, FolderOpen, CheckCircle, Calendar, Trophy, Users, Fl
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
+import { getUserTasks, getUserProjects } from "@/lib/firebase"
 
 interface Task {
   id: string
@@ -41,19 +42,30 @@ export default function CompletedPage() {
   const [activeTab, setActiveTab] = useState<'tasks' | 'projects'>('tasks')
 
   useEffect(() => {
-    if (currentUser?.email) {
+    if (currentUser?.uid) {
       loadCompletedItems()
     }
   }, [currentUser])
 
-  const loadCompletedItems = () => {
+  const loadCompletedItems = async () => {
     try {
-      // Load completed tasks from dedicated completed storage
-      const completedTasksList = JSON.parse(localStorage.getItem(`completed_tasks_${currentUser?.email}`) || "[]")
+      if (!currentUser?.uid) {
+        setIsLoading(false)
+        return
+      }
+
+      // Load tasks and projects from Firebase
+      const [firebaseTasks, firebaseProjects] = await Promise.all([
+        getUserTasks(currentUser.uid),
+        getUserProjects(currentUser.uid)
+      ])
+
+      // Filter for completed tasks
+      const completedTasksList = firebaseTasks.filter((task: Task) => task.completed)
       setCompletedTasks(completedTasksList)
 
-      // Load completed projects from dedicated completed storage
-      const completedProjectsList = JSON.parse(localStorage.getItem(`completed_projects_${currentUser?.email}`) || "[]")
+      // Filter for completed projects
+      const completedProjectsList = firebaseProjects.filter((project: Project) => project.completed)
       setCompletedProjects(completedProjectsList)
 
       setIsLoading(false)
